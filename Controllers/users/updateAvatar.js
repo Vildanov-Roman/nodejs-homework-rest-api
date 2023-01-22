@@ -2,7 +2,6 @@ const { User } = require('../../models');
 const path = require('path');
 const fs = require('fs/promises');
 const Jimp = require('jimp');
-const { error } = require('console');
 
 const avatarsDir = path.join(__dirname, '../../', 'public', 'avatars');
 
@@ -14,7 +13,7 @@ const updateAvatar = async (req, res) => {
     const resultUpload = path.join(avatarsDir, imageName);
     await Jimp.read(tempUpload)
       .then(avatar => {
-        return avatar.resize(250, 250).quality(60).write(resultUpload);
+        return avatar.resize(250, 250).write(resultUpload);
       })
       .catch(error => {
         throw error;
@@ -28,10 +27,17 @@ const updateAvatar = async (req, res) => {
         new: true,
       },
     );
-    res.status(200).json({ avatarURL });
+    res.status(200).json({
+      data: {
+        user: {
+          avatarURL: updateUserAvatar.avatarURL,
+        },
+      },
+    });
   } catch (error) {
-    await fs.unlink(tempUpload);
     throw error;
+  } finally {
+    await fs.unlink(tempUpload);
   }
 };
 
